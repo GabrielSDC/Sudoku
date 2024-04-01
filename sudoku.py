@@ -1,44 +1,54 @@
 import pygame
+import time
 
 pygame.init()
 
-size    = width, height = 270, 270
+size    = width, height = 271, 271
 screen  = pygame.display.set_mode(size)
 clock   = pygame.time.Clock()
 running = True
 dt      = 0
 
+black = (0,   0,   0)
+white = (255, 255, 255)
+
+selected = pygame.Vector2(0, 0)
+
 thick_lines = []
-limit = 0
-while limit <= width:
-    thick_lines.append((limit, 0))
-    thick_lines.append((limit, height))
-    thick_lines.append((0, limit))
-    thick_lines.append((width, limit))
-    limit += 90
+for limit in range(0, width + 1, 90):
+    thick_lines.append([(limit, 0), (limit, height)])
+    thick_lines.append([(0, limit), (width, limit)])
 
 thin_lines = []
-limit = 0
-while limit <= width:
-    thin_lines.append((limit, 0))
-    thin_lines.append((limit, height))
-    thin_lines.append((0, limit))
-    thin_lines.append((width, limit))
-    limit += 30
+for limit in range(0, width + 1, 30):
+    thin_lines.append([(limit, 0), (limit, height)])
+    thin_lines.append([(0, limit), (width, limit)])
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
     
-    screen.fill("white")
+    keys_pressed = pygame.key.get_pressed()
+    if keys_pressed[pygame.K_UP] or keys_pressed[pygame.K_w]:
+        selected.y = max(0, selected.y - 30)
+    if keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_s]:
+        selected.y = min(240, selected.y + 30)
+    if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_a]:
+        selected.x = max(0, selected.x - 30)
+    if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]:
+        selected.x = min(240, selected.x + 30)
 
-    for i in range(0, len(thick_lines), 2):
-        pygame.draw.line(screen, (0, 0, 0), thick_lines[i], thick_lines[i + 1], 3)
-    for i in range(0, len(thin_lines), 2):
-        pygame.draw.line(screen, (0, 0, 0), thin_lines[i], thin_lines[i + 1], 1)
+    screen.fill(white)
+    selected_points = [(selected.x, selected.y), (selected.x + 30, selected.y), (selected.x + 30, selected.y + 30), (selected.x, selected.y + 30)]
+    pygame.draw.polygon(screen, (0, 0, 255), selected_points, 0)
+
+    for line in thick_lines:
+        pygame.draw.line(screen, black, line[0], line[1], 3)
+    for line in thin_lines:
+        pygame.draw.line(screen, black, line[0], line[1], 1)
 
     pygame.display.flip()
-    dt = clock.tick(60) / 1000
+    dt = clock.tick(10) / 1000
 
 pygame.quit()
