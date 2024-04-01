@@ -29,6 +29,12 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     
+    click = pygame.mouse.get_pressed()
+    if click[0]:
+        position = pygame.mouse.get_pos()
+        selected.x = position[0] - position[0] % 30
+        selected.y = position[1] - position[1] % 30
+
     keys_pressed = pygame.key.get_pressed()
     if keys_pressed[pygame.K_UP] or keys_pressed[pygame.K_w]:
         selected.y = max(0, selected.y - 30)
