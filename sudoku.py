@@ -44,20 +44,27 @@ conflicting_cells = []
 
 def find_errors(x: int, y: int, value: int) -> bool:
     for i in range(9):
-        if i != x and board[i][y]["value"] == value:
-            conflicting_cells.append((value, i, y))
-        if i != y and board[x][i]["value"] == value:
-            conflicting_cells.append((value, x, i))
+        if i != x and board[y][i]["value"] == value:
+            conflicting_cells.append((x, y, i, y))
+        if i != y and board[i][x]["value"] == value:
+            conflicting_cells.append((x, y, x, i))
     
     section_x, section_y = (x // 3) * 3, (y // 3) * 3
     for i in range(section_y, section_y + 3):
         for j in range(section_x, section_x + 3):
-            if i != y and j != x and board[i][j]["value"] == value:
-                conflicting_cells.append((value, i, j))
+            if (i != y or j != x) and board[i][j]["value"] == value:
+                conflicting_cells.append((x, y, j, i))
 
 def update_cell(x: int, y: int, value: int):
     if value == 0:
         board[y][x]["text"] = nm_font.render(' ', True, black)
+        found_errors = []
+        for error in conflicting_cells:
+            (i, j, k, l) = error
+            if i == x and j == y or k == x and l == y:
+                found_errors.append(error)
+        for err in found_errors:
+            conflicting_cells.remove(err)
     else:
         board[y][x]["text"] = nm_font.render(str(value), True, black)
         find_errors(x, y, value)
@@ -65,8 +72,8 @@ def update_cell(x: int, y: int, value: int):
     board[y][x]["value"] = value
 
 def draw_colored_square(x: int, y: int, color: tuple):
-    selected_points = [(x, y), (x + 30, y), (x + 30, y + 30), (x, y + 30)]
-    pg.draw.polygon(screen, color, selected_points, 0)
+    points = [(x, y), (x + 30, y), (x + 30, y + 30), (x, y + 30)]
+    pg.draw.polygon(screen, color, points, 0)
 
 while running:
     for event in pg.event.get():
@@ -92,9 +99,9 @@ while running:
 
     click = pg.mouse.get_pressed()
     if click[0]:
-        position = pg.mouse.get_pos()
-        selected.x = position[0] - position[0] % 30
-        selected.y = position[1] - position[1] % 30
+        selected.x, selected.y = pg.mouse.get_pos()
+        selected.x -= selected.x % 30
+        selected.y -= selected.y % 30
 
     screen.fill(white)
 
@@ -104,6 +111,11 @@ while running:
         for j in range(9):
             if selected_value and board[i][j]["value"] == selected_value:
                 draw_colored_square(j * 30, i * 30, lt_blue)
+
+    for error in conflicting_cells:
+        (i, j, k, l) = error
+        draw_colored_square(i * 30, j * 30, red)
+        draw_colored_square(k * 30, l * 30, red)
 
     draw_colored_square(selected.x, selected.y, blue)
 
